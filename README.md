@@ -19,7 +19,7 @@ Kunden-Boards und in externen Integrationen.
 Auf einem frisch geflashten Raspberry Pi CM5 mit Debian 13 Trixie:
 
 ```bash
-curl -fsSL https://github.com/Notavis-GmbH/notavis-mipi-trigger-public/releases/download/v0.1.1/install.sh | sudo bash
+curl -fsSL https://raw.githubusercontent.com/Notavis-GmbH/notavis-mipi-trigger-public/main/dist/install.sh | sudo bash
 ```
 
 Das Skript:
