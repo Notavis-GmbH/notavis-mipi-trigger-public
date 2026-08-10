@@ -1,0 +1,29 @@
+# Catalog entry for VC MIPI sensor IMX296.
+#
+# Populated from the driver's canonical source
+# (vc_mipi_modules.c, raspberrypi/develop branch).
+# No live V4L2/mediabus values here — see the parent
+# sensor_profiles/ directory for live-verified profiles.
+
+sensor_name: IMX296
+display_name: "IMX296 (VC MIPI, global shutter, color+mono)"
+vendor: sony
+module_id: "0x0296"
+
+native:
+  width: 1440
+  height: 1080
+
+shutter: global
+color_mono: "color+mono"
+
+modes:
+  mode_count: 2
+  lane_options: [1]
+  format_options: ['RAW10']
+  has_binning: true
+
+verification:
+  status: catalog_only
+  source: "https://github.com/VC-MIPI-modules/vc_mipi_core/blob/raspberrypi/develop/src/vc_mipi_modules.c#L420"
+  verified_at: "2026-08-04"

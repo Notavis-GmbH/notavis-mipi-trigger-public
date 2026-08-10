@@ -1,0 +1,63 @@
+# systemd unit for notavis-mipi-trigger (Streamlit UI on port 8501).
+#
+# Installation (as root on the target CM5):
+#   sudo cp deploy/vc-trigger.service /etc/systemd/system/vc-trigger.service
+#   sudo systemctl daemon-reload
+#   sudo systemctl enable --now vc-trigger.service
+#
+# Prerequisites:
+#   - Application installed under /home/raspberrypi/vc-trigger with a virtualenv
+#     at /home/raspberrypi/vc-trigger/.venv (see deploy/DEPLOY.md).
+#   - User `raspberrypi` (Notavis dev-board baseline) is a member of the `gpio`
+#     group (Trixie default for CM5).
+#
+# The service runs as an unprivileged user and does NOT require sudo. GPIO
+# access goes through /dev/gpiochip* via the `gpio` group membership.
+
+[Unit]
+Description=NOTAVIS VC MIPI trigger UI (Streamlit, GPIO 18)
+Documentation=https://github.com/Notavis-GmbH/notavis-mipi-trigger
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=raspberrypi
+Group=raspberrypi
+SupplementaryGroups=gpio
+WorkingDirectory=/home/raspberrypi/vc-trigger
+Environment=PYTHONUNBUFFERED=1
+Environment=VC_TRIGGER_LOG_LEVEL=INFO
+# Streamlit writes ~/.streamlit/credentials.toml on first run. Point HOME at a
+# systemd-managed StateDirectory so ProtectHome=read-only stays intact.
+Environment=HOME=/var/lib/vc-trigger
+StateDirectory=vc-trigger
+StateDirectoryMode=0750
+# Bind on all interfaces so the UI is reachable from the developer laptop on
+# the LAN. Adjust to 127.0.0.1 if the machine is exposed publicly.
+ExecStart=/home/raspberrypi/vc-trigger/.venv/bin/python -m streamlit run \
+    /home/raspberrypi/vc-trigger/src/vc_trigger/ui.py \
+    --server.address 0.0.0.0 \
+    --server.port 8501 \
+    --server.headless true \
+    --browser.gatherUsageStats false
+Restart=on-failure
+RestartSec=5
+
+# Hardening (mirrors ngrok.service on this board).
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=strict
+ProtectHome=read-only
+ReadWritePaths=/home/raspberrypi/vc-trigger
+ProtectKernelTunables=true
+ProtectKernelModules=true
+ProtectControlGroups=true
+RestrictSUIDSGID=true
+LockPersonality=true
+# streamlit uses runtime bytecode compilation, so W^X must stay disabled.
+MemoryDenyWriteExecute=false
+# GPIO character device must remain accessible; do NOT set DevicePolicy=closed.
+
+[Install]
+WantedBy=multi-user.target

@@ -1,0 +1,29 @@
+# Catalog entry for VC MIPI sensor IMX412.
+#
+# Populated from the driver's canonical source
+# (vc_mipi_modules.c, raspberrypi/develop branch).
+# No live V4L2/mediabus values here — see the parent
+# sensor_profiles/ directory for live-verified profiles.
+
+sensor_name: IMX412
+display_name: "IMX412 (VC MIPI, rolling shutter, color+mono)"
+vendor: sony
+module_id: "0x0412"
+
+native:
+  width: 4032
+  height: 3040
+
+shutter: rolling
+color_mono: "color+mono"
+
+modes:
+  mode_count: 12
+  lane_options: [2, 4]
+  format_options: ['RAW10']
+  has_binning: true
+
+verification:
+  status: catalog_only
+  source: "https://github.com/VC-MIPI-modules/vc_mipi_core/blob/raspberrypi/develop/src/vc_mipi_modules.c#L571"
+  verified_at: "2026-08-04"

@@ -1,0 +1,55 @@
+# OV9281 sensor profile for VC MIPI camera.
+#
+# Baseline verified on 2026-08-04 against board `UniversitySidney1`
+# (Raspberry Pi CM5, Debian 13 Trixie, kernel 6.18.34, VC driver v0.6.10).
+#
+# The registry key is the exact string returned by the VC driver's
+# `sensor_name` V4L2 control (read-only, on the sensor subdev).
+# Do not change the filename; the loader matches profiles by
+# `<sensor_name>.yaml`, case-sensitive.
+
+sensor_name: OV9281
+display_name: OmniVision OV9281 (VC MIPI)
+vendor: omnivision
+
+native:
+  width: 1280
+  height: 800
+  mediabus_code: "0x200a"  # MEDIA_BUS_FMT_Y10_1X10
+
+# Pixel formats supported by this sensor on the video device.
+# `id` is the SensorPixelFormat enum value used by the models/UI.
+# `fourcc` is the V4L2 fourcc string that goes to `--set-fmt-video`.
+pixel_formats:
+  - id: raw08
+    fourcc: GREY
+    label: "RAW08 (8-bit mono)"
+  - id: raw10
+    fourcc: Y10P
+    label: "RAW10 (10-bit mono packed)"
+
+default_pixel_format: raw10
+
+# V4L2 control bounds read from the sensor subdev on
+# `UniversitySidney1` (2026-08-04). These are used to tighten
+# the UI spinbox ranges beyond the conservative model defaults.
+controls:
+  exposure:
+    v4l2_name: exposure
+    min: 146
+    max: 596222
+    default: 10000
+    step: 100
+    unit: us
+  gain:
+    v4l2_name: analogue_gain
+    min: 0
+    max: 12000
+    default: 0
+    step: 50
+    unit: "driver"
+  trigger_mode:
+    v4l2_name: trigger_mode
+    min: 0
+    max: 7
+    default: 0
