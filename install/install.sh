@@ -1,10 +1,11 @@
 #!/usr/bin/env bash
 # install.sh — notavis-mipi-trigger-public
 #
-# Ein-Zeilen-Installer, geeignet fuer:
-#   curl -fsSL https://github.com/Notavis-GmbH/notavis-mipi-trigger-public/releases/download/vX.Y.Z/install.sh | sudo bash
+# Ein-Zeilen-Installer:
+#   curl -fsSL https://raw.githubusercontent.com/Notavis-GmbH/notavis-mipi-trigger-public/main/install/install.sh | sudo bash
 #
-# Zielsystem: Raspberry Pi CM5, Debian 13 (Trixie), aarch64.
+# Zielsystem: Raspberry Pi CM5 / Pi 5 / Pi 4, Debian 12 (Bookworm) oder
+#             Debian 13 (Trixie), aarch64.
 # Standardbenutzer wird per RUN_USER-Env angepasst (Default: raspberrypi).
 #
 # Idempotent: bestehende Installation wird gesichert, nicht ungefragt ueberschrieben.
@@ -12,7 +13,7 @@
 set -euo pipefail
 
 # --- Konfiguration ----------------------------------------------------------
-VERSION="${VERSION:-v0.1.1}"
+VERSION="${VERSION:-v0.1.2}"
 REPO="Notavis-GmbH/notavis-mipi-trigger-public"
 BASE_URL="https://raw.githubusercontent.com/${REPO}/main/install"
 TARBALL_NAME="notavis-mipi-trigger-${VERSION}.tar.gz"
@@ -115,7 +116,8 @@ sudo -u "${RUN_USER}" "${VENV_DIR}/bin/pip" install "${INSTALL_DIR}"
 echo "      verifiziere ..."
 sudo -u "${RUN_USER}" VC_TRIGGER_MOCK=1 "${VENV_DIR}/bin/python" -c "
 import vc_trigger
-from vc_trigger.controller import get_controller, TriggerMode
+from vc_trigger.controller import get_controller
+from vc_trigger.models import TriggerMode
 c = get_controller(mock=True)
 assert c.mode == TriggerMode.IDLE
 print(f'  vc_trigger:  {vc_trigger.__file__}')

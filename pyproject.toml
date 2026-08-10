@@ -4,33 +4,33 @@ build-backend = "hatchling.build"
 
 [project]
 name = "notavis-mipi-trigger"
-version = "0.1.1"
-description = "External GPIO/PWM trigger for VC MIPI cameras on Raspberry Pi CM5, with Streamlit and PySide6 desktop UIs."
+version = "0.1.2"
+description = "External GPIO/PWM camera trigger for Raspberry Pi CM5, with Streamlit and PySide6 desktop UIs."
 readme = "README.md"
 requires-python = ">=3.12"
-license = { text = "Proprietary — NOTAVIS GmbH internal" }
+license = { text = "MIT" }
 authors = [
   { name = "NOTAVIS GmbH", email = "patrik.drexel@notavis.com" },
 ]
-keywords = ["notavis", "vision-components", "mipi", "raspberry-pi", "gpio", "trigger", "streamlit", "pyside6", "qt"]
+keywords = ["notavis", "raspberry-pi", "gpio", "pwm", "trigger", "streamlit", "pyside6", "qt", "camera"]
 classifiers = [
-  "Development Status :: 3 - Alpha",
+  "Development Status :: 4 - Beta",
   "Intended Audience :: Developers",
-  "License :: Other/Proprietary License",
+  "License :: OSI Approved :: MIT License",
   "Operating System :: POSIX :: Linux",
   "Programming Language :: Python :: 3.12",
+  "Programming Language :: Python :: 3.13",
 ]
 dependencies = [
   "streamlit>=1.36",
   # Streamlit 1.61 with starlette>=0.48 raises 'GZipResponder.__init__()
   # missing 1 required keyword-only argument: thread_minimum_size' inside its
   # gzip middleware, breaking every WebSocket handshake. Pin until Streamlit
-  # upstream ships a fix. Verified on UniversitySidney1 (CM5, Trixie).
+  # upstream ships a fix. Verified on Raspberry Pi CM5 (Debian 13 Trixie).
   "starlette>=0.47,<0.48",
   "gpiozero>=2.0",
   "lgpio>=0.2.2.0",
   "pydantic>=2.7",
-  "pyyaml>=6",
 ]
 
 [project.optional-dependencies]
@@ -47,11 +47,12 @@ desktop = [
 vc-trigger-ui = "vc_trigger.ui:main"
 vc-trigger-desktop = "vc_trigger.desktop_ui:main"
 
+[project.urls]
+Homepage = "https://github.com/Notavis-GmbH/notavis-mipi-trigger-public"
+Issues = "https://github.com/Notavis-GmbH/notavis-mipi-trigger-public/issues"
+
 [tool.hatch.build.targets.wheel]
 packages = ["src/vc_trigger"]
-
-[tool.hatch.build.targets.wheel.force-include]
-"src/vc_trigger/sensor_profiles" = "vc_trigger/sensor_profiles"
 
 [tool.ruff]
 line-length = 100

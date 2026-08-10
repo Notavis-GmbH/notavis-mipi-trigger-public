@@ -1,136 +1,92 @@
 # notavis-mipi-trigger-public
 
-Externer **GPIO/PWM-Trigger** fuer Vision-Components-MIPI-Kameras. Zielplattform:
-Raspberry Pi Compute Module 5 (Debian 13 Trixie, aarch64). Zwei gleichwertige
-Frontends teilen sich denselben `TriggerController`:
+Externer **GPIO/PWM-Kamera-Trigger** fuer den Raspberry Pi. Zielplattform:
+Raspberry Pi Compute Module 5 (Debian 13 Trixie, aarch64) — laeuft auch auf
+Raspberry Pi 5, Pi 4 und Pi Zero 2 W mit Debian 12 (Bookworm) oder neuer.
+
+Zwei gleichwertige Frontends teilen sich denselben `TriggerController`:
 
 - **Streamlit-Web-UI** — Browser-basiert, remote nutzbar unter `http://<board>:8501`
-- **PySide6-Desktop-UI** — native Qt-App, laeuft direkt auf dem CM5 (HDMI / DSI
-  am Board)
+- **PySide6-Desktop-UI** — native Qt-App, laeuft direkt am HDMI-/DSI-Ausgang
 
-Beide UIs erzeugen identische Signale auf GPIO 18.
+Beide UIs erzeugen identische Signale auf **GPIO 18** (Hardware-PWM-fahiger Pin).
+Es findet **keine** Kamera-Kommunikation statt — dieses Tool schaltet nur den
+Trigger-Pin. Die Kamera muss die Trigger-Flanke selbst auswerten (z. B. VC MIPI
+`trigger_mode=External`).
 
 Dies ist die **oeffentliche Auslieferungs-Linie** des internen NOTAVIS-Trigger-Tools.
 Sie enthaelt ausschliesslich stabile, freigegebene Releases fuer den Einsatz auf
-Kunden-Boards und in externen Integrationen.
+Kunden-Boards und externen Integrationen.
 
 ## Ein-Zeilen-Installation (empfohlen)
 
-Auf einem frisch geflashten Raspberry Pi CM5 mit Debian 13 Trixie:
+Auf einem frisch geflashten Raspberry Pi (Debian 12/13) als Standard-User `pi`
+oder aequivalent mit sudo-Rechten:
 
 ```bash
 curl -fsSL https://raw.githubusercontent.com/Notavis-GmbH/notavis-mipi-trigger-public/main/install/install.sh | sudo bash
 ```
 
-Das Skript:
+Nach dem Durchlauf:
 
-1. installiert alle APT-Pakete (`swig`, `liblgpio-dev`, `python3-lgpio`, `python3-venv`, `python3-pip`, `build-essential`)
-2. prueft `gpio`-Gruppenmitgliedschaft des Standard-Users
-3. laedt den signierten Release-Tarball von GitHub
-4. verifiziert die SHA256-Pruefsumme
-5. sichert eine ggf. vorhandene Vorinstallation
-6. entpackt nach `/home/raspberrypi/vc-trigger`
-7. erzeugt ein Python-virtualenv und installiert alle Runtime-Deps
-8. richtet den systemd-Service `vc-trigger.service` ein und startet ihn
+- systemd-Service `vc-trigger.service` laeuft und ist enabled
+- Web-UI erreichbar unter `http://<board-ip>:8501`
+- Desktop-UI via `vc-trigger-desktop` (falls X11/Wayland verfuegbar)
 
-Nach dem Lauf ist die Web-UI unter `http://<board-ip>:8501` erreichbar.
+## Funktionsumfang
 
-## Ziel
-
-Steuerung des Kamera-Triggers ueber GPIO 18 (Hardware-PWM) mit zwei Modi:
-
-- **Einzel-Puls (Single-Shot):** definierte Pulsdauer in Millisekunden, manuell
-  ausgeloest
-- **Kontinuierliches PWM-Signal:** Frequenz (1-200 Hz) und Duty Cycle (0-100 %),
-  zur Laufzeit einstellbar
-
-Alle Parameter sind ueber das UI im laufenden Betrieb aenderbar, ohne dass die
-Applikation neu gestartet wird.
-
-## Zielhardware
-
-| Komponente | Wert |
+| Modus | Beschreibung |
 |---|---|
-| Board | Raspberry Pi Compute Module 5 rev 1.0 (4 GB) |
-| OS | Debian 13 (Trixie), aarch64 |
-| Python | 3.12 (System) |
-| Trigger-Pin | GPIO 18 (Hardware-PWM Kanal 0) |
-| GPIO-Backend | `gpiozero` mit `lgpio`-Pin-Factory |
+| **Single-Shot** | Ein einzelner Rechteck-Puls definierter Dauer (0.1 – 1000 ms) |
+| **PWM** | Kontinuierliches Signal (1 – 200 Hz, Duty 0 – 100 %) |
 
-## Board-Voraussetzungen (frischer CM5)
+Sicherheits-Garantien im Controller:
 
-Der `install.sh`-Ein-Zeiler erledigt das automatisch. Bei manueller Installation:
+- Jeder Modus-Wechsel stoppt das laufende Signal sauber.
+- Beim Beenden der UI wird der Pin auf LOW gezogen (kein „haengender" Trigger).
+- Parallele Single-Shots werden serialisiert (kein Doppel-Trigger).
+- Alle Aktionen brauchen einen expliziten Button-Klick. Slider-Aenderungen
+  schalten nichts.
 
-```bash
-sudo apt update
-sudo apt install -y swig liblgpio-dev python3-lgpio python3-venv python3-pip build-essential
-```
-
-## Manuelle Installation (fuer Entwickler)
+## Manuelle Installation
 
 ```bash
-git clone https://github.com/Notavis-GmbH/notavis-mipi-trigger-public.git vc-trigger
-cd vc-trigger
+sudo apt update && sudo apt install -y python3-pip python3-venv git
+git clone https://github.com/Notavis-GmbH/notavis-mipi-trigger-public.git
+cd notavis-mipi-trigger-public
 python3 -m venv .venv
-.venv/bin/pip install --upgrade pip setuptools wheel
-.venv/bin/pip install -e '.[dev,desktop]'
-.venv/bin/python -m pytest -q
+source .venv/bin/activate
+pip install -e '.[desktop]'
+
+# Web-UI starten (Port 8501, alle Interfaces)
+streamlit run src/vc_trigger/ui.py --server.address 0.0.0.0 --server.port 8501
+
+# oder Desktop-UI
+vc-trigger-desktop
 ```
 
-Details siehe [`deploy/DEPLOY.md`](deploy/DEPLOY.md).
+## Entwicklung ohne Board (Mock-Modus)
 
-## Nutzung
-
-### Streamlit-Web-UI
+Auf einem Entwicklungs-PC ohne GPIO-Hardware:
 
 ```bash
-.venv/bin/streamlit run src/vc_trigger/ui.py --server.address 0.0.0.0 --server.port 8501
+export VC_TRIGGER_MOCK=1
+export QT_QPA_PLATFORM=offscreen   # nur fuer headless Test-Runs
+pytest -q
 ```
 
-Browser: `http://<board-ip>:8501`. DE/EN-Toggle in der Sidebar (Standard DE).
+## Anforderungen
 
-### PySide6-Desktop-UI
-
-```bash
-.venv/bin/vc-trigger-desktop
-# oder
-.venv/bin/python -m vc_trigger.desktop_ui
-```
-
-Erwartet ein Display (`$DISPLAY` bzw. Wayland). Fuer headless Tests:
-`QT_QPA_PLATFORM=offscreen`.
-
-### Mock-Modus (ohne Board)
-
-```bash
-VC_TRIGGER_MOCK=1 .venv/bin/vc-trigger-desktop
-```
-
-Nutzt einen In-Memory-GPIO-Backend, kein `/dev/gpiochip*`-Zugriff.
-
-## Systemd-Service
-
-Das Ein-Zeilen-Installer-Skript installiert den Service automatisch. Manueller
-Start:
-
-```bash
-sudo systemctl start vc-trigger.service
-sudo systemctl enable vc-trigger.service
-systemctl status vc-trigger.service
-journalctl -u vc-trigger.service -f
-```
+- **Hardware:** Raspberry Pi mit GPIO-Header, GPIO 18 als Ausgang frei
+- **OS:** Debian 12 Bookworm oder Debian 13 Trixie (aarch64)
+- **Python:** 3.12 oder 3.13
+- **Bibliotheken:** `gpiozero`, `lgpio` (auf Debian via `apt install python3-lgpio`)
 
 ## Lizenz
 
-MIT License — siehe [`LICENSE`](LICENSE). Copyright (c) 2026 NOTAVIS GmbH.
-
-## Beitraege
-
-Issues und Pull Requests sind willkommen. Fuer groessere Aenderungen bitte
-vorher ein Issue oeffnen. Contributor sichern zu, dass ihr Beitrag unter der
-MIT-Lizenz dieses Repos veroeffentlicht werden darf.
+MIT — siehe [LICENSE](LICENSE).
 
 ## Kontakt
 
-- Business: [NOTAVIS GmbH](https://www.notavis.com), Frankfurt am Main
-- Technisch: Patrik Drexel <patrik.drexel@notavis.com>
+NOTAVIS GmbH, Frankfurt am Main
+`patrik.drexel@notavis.com`

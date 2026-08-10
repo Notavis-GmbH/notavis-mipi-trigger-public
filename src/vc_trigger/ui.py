@@ -1,4 +1,4 @@
-"""Streamlit UI for the VC MIPI GPIO/PWM trigger.
+"""Streamlit UI for the GPIO/PWM camera trigger.
 
 Run with:
 
@@ -73,8 +73,8 @@ class Strings:
 
 
 _DE = Strings(
-    title="VC MIPI Trigger — GPIO 18",
-    subtitle="Externer Kamera-Trigger fuer Vision Components MIPI-Module.",
+    title="NOTAVIS Trigger — GPIO 18",
+    subtitle="Externer Kamera-Trigger auf Raspberry Pi (Hardware-PWM).",
     sidebar_language="Sprache",
     sidebar_mode="Modus",
     mode_single="Einzel-Puls (Single-Shot)",
@@ -105,8 +105,8 @@ _DE = Strings(
 
 
 _EN = Strings(
-    title="VC MIPI Trigger — GPIO 18",
-    subtitle="External camera trigger for Vision Components MIPI modules.",
+    title="NOTAVIS Trigger — GPIO 18",
+    subtitle="External camera trigger on Raspberry Pi (hardware PWM).",
     sidebar_language="Language",
     sidebar_mode="Mode",
     mode_single="Single-shot pulse",
