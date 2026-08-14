@@ -1,5 +1,8 @@
 # notavis-mipi-trigger-public
 
+[![Docker build](https://github.com/Notavis-GmbH/notavis-mipi-trigger-public/actions/workflows/docker.yml/badge.svg)](https://github.com/Notavis-GmbH/notavis-mipi-trigger-public/actions/workflows/docker.yml)
+[![Image](https://img.shields.io/badge/ghcr.io-notavis--mipi--trigger--public-blue?logo=docker)](https://github.com/Notavis-GmbH/notavis-mipi-trigger-public/pkgs/container/notavis-mipi-trigger-public)
+
 Externer **GPIO/PWM-Kamera-Trigger** fuer den Raspberry Pi. Zielplattform:
 Raspberry Pi Compute Module 5 (Debian 13 Trixie, aarch64) — laeuft auch auf
 Raspberry Pi 5, Pi 4 und Pi Zero 2 W mit Debian 12 (Bookworm) oder neuer.
@@ -64,6 +67,46 @@ streamlit run src/vc_trigger/ui.py --server.address 0.0.0.0 --server.port 8501
 # oder Desktop-UI
 vc-trigger-desktop
 ```
+
+## Docker (optional)
+
+Alternative zur nativen venv-Installation, ausschliesslich fuer die
+Streamlit-Web-UI (die PySide6-Desktop-UI laeuft nativ am Board-Display und
+wird nicht containerisiert). Images werden fuer **linux/amd64** und
+**linux/arm64** gebaut; jeder Push/PR mit Aenderungen an Dockerfile,
+docker-compose.yml oder `src/` durchlaeuft automatisch einen CI-Build fuer
+beide Architekturen (`.github/workflows/docker.yml`).
+
+#### Fertiges Image pullen
+
+Bei jedem Merge nach `main` bzw. bei einem Versions-Tag `vX.Y.Z` baut und
+veroeffentlicht die CI-Pipeline das Image automatisch nach GHCR:
+
+```bash
+# Neuester main-Stand
+docker pull ghcr.io/notavis-gmbh/notavis-mipi-trigger-public:latest
+
+# Konkrete Version (sobald ein Tag vX.Y.Z existiert)
+docker pull ghcr.io/notavis-gmbh/notavis-mipi-trigger-public:X.Y.Z
+```
+
+> **Hinweis:** GitHub legt ein neues Container-Package standardmaessig als
+> **privat** an, auch in oeffentlichen Repos. Bis ein Org-Admin die
+> Sichtbarkeit einmalig auf *Public* stellt (Package-Settings auf GitHub),
+> schlaegt `docker pull` ohne vorheriges `docker login ghcr.io` fehl.
+
+```bash
+# Mock-Modus, lokal gebaut (kein Board noetig, z. B. auf einem amd64-Laptop)
+docker compose up --build
+
+# Multi-Arch-Image selbst bauen (amd64 + arm64)
+docker buildx build --platform linux/amd64,linux/arm64 -t notavis-mipi-trigger:local .
+```
+
+Fuer echten GPIO-Zugriff auf dem Board (Device-Passthrough, `gpiochip`-
+Nummerierung, Troubleshooting) siehe [deploy/DOCKER.md](deploy/DOCKER.md).
+Fuer den produktiven Betrieb bleibt der systemd-Service aus
+[deploy/DEPLOY.md](deploy/DEPLOY.md) der empfohlene Weg.
 
 ## Entwicklung ohne Board (Mock-Modus)
 

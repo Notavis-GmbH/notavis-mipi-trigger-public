@@ -1,0 +1,141 @@
+name: Docker build (multi-arch)
+
+# Builds the Streamlit web-UI container image for linux/amd64 and
+# linux/arm64 on every change that could affect it, WITHOUT pushing
+# anywhere (no registry credentials are configured for this public repo).
+# Purpose: catch build breakage -- e.g. the lgpio native-extension build
+# documented in the Dockerfile -- before it reaches main or a release.
+on:
+  push:
+    branches: ["main", "feat/**"]
+    paths:
+      - "Dockerfile"
+      - ".dockerignore"
+      - "docker-compose.yml"
+      - "pyproject.toml"
+      - "src/**"
+      - ".github/workflows/docker.yml"
+  pull_request:
+    branches: ["main"]
+    paths:
+      - "Dockerfile"
+      - ".dockerignore"
+      - "docker-compose.yml"
+      - "pyproject.toml"
+      - "src/**"
+      - ".github/workflows/docker.yml"
+  workflow_dispatch: {}
+
+permissions:
+  contents: read
+
+jobs:
+  lint-dockerfile:
+    name: Lint Dockerfile
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: hadolint
+        uses: hadolint/hadolint-action@v3.1.0
+        with:
+          dockerfile: Dockerfile
+          # DL3008/DL3013 (pin apt/pip versions) are deliberately not
+          # enforced here: this image tracks latest Debian security
+          # patches and current PyPI releases by design, see deploy/DOCKER.md.
+          #
+          # DL3006 (always tag the base image explicitly) is a false
+          # positive here: both FROM lines use `${PYTHON_IMAGE}`, an ARG
+          # that already defaults to the explicit tag
+          # `python:3.12-slim-trixie` -- hadolint does not resolve the
+          # ARG's default value when checking this rule. Confirmed against
+          # hadolint via the CI run on 2026-08-14.
+          ignore: DL3006,DL3008,DL3013
+
+  validate-compose:
+    name: Validate docker-compose.yml
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: docker compose config
+        run: docker compose -f docker-compose.yml config
+
+  build:
+    # Runs for every push/PR covered by the `on:` filters above, including
+    # feature branches -- this is the fast feedback loop that does NOT
+    # publish anything. Publishing only happens from the `publish` job
+    # below, gated to main/tags.
+    name: Build image (amd64 + arm64)
+    needs: [lint-dockerfile, validate-compose]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@v3
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Build (no push)
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          platforms: linux/amd64,linux/arm64
+          push: false
+          tags: notavis-mipi-trigger:ci
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+  publish:
+    # Publishes to GHCR. Gated to `main` and version tags only -- feature
+    # branches only ever run the `build` job above (push: false), so
+    # nothing lands in the registry before a change is merged or tagged.
+    name: Publish image to GHCR
+    if: >-
+      github.event_name == 'push' &&
+      (github.ref == 'refs/heads/main' || startsWith(github.ref, 'refs/tags/v'))
+    needs: [lint-dockerfile, validate-compose]
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@v3
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Log in to GHCR
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      # Tag scheme:
+      #   push to main        -> :latest, :sha-<short-sha>
+      #   tag vX.Y.Z          -> :X.Y.Z, :X.Y, :sha-<short-sha>  (no :latest)
+      - name: Extract image metadata
+        id: meta
+        uses: docker/metadata-action@v5
+        with:
+          images: ghcr.io/notavis-gmbh/notavis-mipi-trigger-public
+          tags: |
+            type=raw,value=latest,enable={{is_default_branch}}
+            type=sha,prefix=sha-,format=short
+            type=semver,pattern={{version}}
+            type=semver,pattern={{major}}.{{minor}}
+
+      - name: Build and push
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          platforms: linux/amd64,linux/arm64
+          push: true
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max

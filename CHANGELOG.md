@@ -4,6 +4,26 @@ Alle nennenswerten Aenderungen an diesem Projekt werden hier dokumentiert.
 Format nach [Keep a Changelog](https://keepachangelog.com/de/1.1.0/),
 Versionierung nach [Semantic Versioning](https://semver.org/lang/de/).
 
+## [Unreleased]
+
+## [0.2.0] — 2026-08-14
+
+### Added
+
+- Docker-Unterstuetzung fuer die Streamlit-Web-UI: `Dockerfile` (Multi-Stage,
+  Base-Image `python:3.12-slim-trixie`, kompiliert `lgpio` aus dem Quellcode
+  via SWIG/build-essential), `docker-compose.yml`-Beispiel mit
+  GPIO-Device-Passthrough-Anleitung fuer CM5/Pi 5, sowie `deploy/DOCKER.md`
+  mit Details zu Multi-Arch-Builds (linux/amd64, linux/arm64), gpiochip-
+  Ermittlung und Troubleshooting. Die PySide6-Desktop-UI ist bewusst nicht
+  Teil des Images (siehe Begruendung in `deploy/DOCKER.md`).
+- CI-Workflow `.github/workflows/docker.yml`: baut das Docker-Image bei
+  jedem relevanten Push/PR fuer linux/amd64 und linux/arm64, inkl.
+  `hadolint`-Lint und `docker compose config`. Bei Push nach `main` bzw.
+  einem Versions-Tag `vX.Y.Z` wird das Image zusaetzlich nach
+  `ghcr.io/notavis-gmbh/notavis-mipi-trigger-public` veroeffentlicht;
+  README-Abschnitt mit Pull-Kommando und CI-/Image-Badges ergaenzt.
+
 ## [0.1.2] — 2026-08-10
 
 ### BREAKING CHANGE

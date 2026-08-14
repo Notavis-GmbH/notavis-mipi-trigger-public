@@ -1,0 +1,49 @@
+# --- VCS / CI ---------------------------------------------------------
+.git
+.github
+
+# --- Python -------------------------------------------------------------
+__pycache__/
+*.py[cod]
+*.egg-info/
+*.egg
+.eggs/
+build/
+dist/
+wheels/
+
+# --- Env / Venv -----------------------------------------------------------
+.venv/
+venv/
+env/
+.env
+.env.*
+!.env.example
+
+# --- Test / Coverage ------------------------------------------------------
+tests/
+.pytest_cache/
+.coverage
+.coverage.*
+htmlcov/
+.tox/
+.nox/
+.hypothesis/
+
+# --- Tooling --------------------------------------------------------------
+.ruff_cache/
+.mypy_cache/
+
+# --- Editors / OS -----------------------------------------------------------
+.vscode/
+.idea/
+.DS_Store
+
+# --- Pre-built install artifacts (not needed to build the image) ---------
+install/*.tar.gz
+install/*.sha256
+
+# --- Docs (not needed inside the image) ------------------------------------
+CHANGELOG.md
+SECURITY.md
+deploy/
