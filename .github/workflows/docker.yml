@@ -8,6 +8,7 @@ name: Docker build (multi-arch)
 on:
   push:
     branches: ["main", "feat/**"]
+    tags: ["v*.*.*"]
     paths:
       - "Dockerfile"
       - ".dockerignore"
