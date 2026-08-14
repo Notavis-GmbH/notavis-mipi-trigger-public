@@ -42,7 +42,14 @@ jobs:
           # DL3008/DL3013 (pin apt/pip versions) are deliberately not
           # enforced here: this image tracks latest Debian security
           # patches and current PyPI releases by design, see deploy/DOCKER.md.
-          ignore: DL3008,DL3013
+          #
+          # DL3006 (always tag the base image explicitly) is a false
+          # positive here: both FROM lines use `${PYTHON_IMAGE}`, an ARG
+          # that already defaults to the explicit tag
+          # `python:3.12-slim-trixie` -- hadolint does not resolve the
+          # ARG's default value when checking this rule. Confirmed against
+          # hadolint via the CI run on 2026-08-14.
+          ignore: DL3006,DL3008,DL3013
 
   validate-compose:
     name: Validate docker-compose.yml
