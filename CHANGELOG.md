@@ -6,6 +6,8 @@ Versionierung nach [Semantic Versioning](https://semver.org/lang/de/).
 
 ## [Unreleased]
 
+## [0.2.0] — 2026-08-14
+
 ### Added
 
 - Docker-Unterstuetzung fuer die Streamlit-Web-UI: `Dockerfile` (Multi-Stage,
