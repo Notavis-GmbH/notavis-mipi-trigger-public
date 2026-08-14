@@ -15,6 +15,9 @@ Versionierung nach [Semantic Versioning](https://semver.org/lang/de/).
   mit Details zu Multi-Arch-Builds (linux/amd64, linux/arm64), gpiochip-
   Ermittlung und Troubleshooting. Die PySide6-Desktop-UI ist bewusst nicht
   Teil des Images (siehe Begruendung in `deploy/DOCKER.md`).
+- CI-Workflow `.github/workflows/docker.yml`: baut das Docker-Image bei
+  jedem relevanten Push/PR fuer linux/amd64 und linux/arm64 (ohne Push in
+  eine Registry), inkl. `hadolint`-Lint und `docker compose config`.
 
 ## [0.1.2] — 2026-08-10
 

@@ -70,7 +70,9 @@ vc-trigger-desktop
 Alternative zur nativen venv-Installation, ausschliesslich fuer die
 Streamlit-Web-UI (die PySide6-Desktop-UI laeuft nativ am Board-Display und
 wird nicht containerisiert). Images werden fuer **linux/amd64** und
-**linux/arm64** gebaut:
+**linux/arm64** gebaut; jeder Push/PR mit Aenderungen an Dockerfile,
+docker-compose.yml oder `src/` durchlaeuft automatisch einen CI-Build fuer
+beide Architekturen (`.github/workflows/docker.yml`).
 
 ```bash
 # Mock-Modus (kein Board noetig, z. B. auf einem amd64-Laptop)
