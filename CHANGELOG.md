@@ -4,6 +4,18 @@ Alle nennenswerten Aenderungen an diesem Projekt werden hier dokumentiert.
 Format nach [Keep a Changelog](https://keepachangelog.com/de/1.1.0/),
 Versionierung nach [Semantic Versioning](https://semver.org/lang/de/).
 
+## [Unreleased]
+
+### Added
+
+- Docker-Unterstuetzung fuer die Streamlit-Web-UI: `Dockerfile` (Multi-Stage,
+  Base-Image `python:3.12-slim-trixie`, kompiliert `lgpio` aus dem Quellcode
+  via SWIG/build-essential), `docker-compose.yml`-Beispiel mit
+  GPIO-Device-Passthrough-Anleitung fuer CM5/Pi 5, sowie `deploy/DOCKER.md`
+  mit Details zu Multi-Arch-Builds (linux/amd64, linux/arm64), gpiochip-
+  Ermittlung und Troubleshooting. Die PySide6-Desktop-UI ist bewusst nicht
+  Teil des Images (siehe Begruendung in `deploy/DOCKER.md`).
+
 ## [0.1.2] — 2026-08-10
 
 ### BREAKING CHANGE

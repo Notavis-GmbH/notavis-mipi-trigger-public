@@ -65,6 +65,26 @@ streamlit run src/vc_trigger/ui.py --server.address 0.0.0.0 --server.port 8501
 vc-trigger-desktop
 ```
 
+## Docker (optional)
+
+Alternative zur nativen venv-Installation, ausschliesslich fuer die
+Streamlit-Web-UI (die PySide6-Desktop-UI laeuft nativ am Board-Display und
+wird nicht containerisiert). Images werden fuer **linux/amd64** und
+**linux/arm64** gebaut:
+
+```bash
+# Mock-Modus (kein Board noetig, z. B. auf einem amd64-Laptop)
+docker compose up --build
+
+# Multi-Arch-Image bauen (amd64 + arm64)
+docker buildx build --platform linux/amd64,linux/arm64 -t notavis-mipi-trigger:local .
+```
+
+Fuer echten GPIO-Zugriff auf dem Board (Device-Passthrough, `gpiochip`-
+Nummerierung, Troubleshooting) siehe [deploy/DOCKER.md](deploy/DOCKER.md).
+Fuer den produktiven Betrieb bleibt der systemd-Service aus
+[deploy/DEPLOY.md](deploy/DEPLOY.md) der empfohlene Weg.
+
 ## Entwicklung ohne Board (Mock-Modus)
 
 Auf einem Entwicklungs-PC ohne GPIO-Hardware:

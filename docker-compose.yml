@@ -1,0 +1,48 @@
+# Example Compose file for the notavis-mipi-trigger Streamlit web UI.
+#
+# Two usage modes:
+#
+#   1. On real Raspberry Pi hardware (GPIO 18 wired to the camera trigger
+#      input) — uncomment the `devices:` / `group_add:` block below so the
+#      container can reach the board's GPIO character device.
+#
+#   2. On a dev machine without GPIO hardware (e.g. an amd64 laptop) — leave
+#      `VC_TRIGGER_MOCK=1` active and the `devices:`/`group_add:` block
+#      commented out. The UI runs fully, but every action is mocked
+#      (see src/vc_trigger/controller.py, _MockDigitalOutput/_MockPwmOutput).
+#
+# Full background on GPIO device passthrough (which /dev/gpiochipN to use,
+# how to find the host's `gpio` group GID, troubleshooting) is in
+# deploy/DOCKER.md.
+
+services:
+  vc-trigger:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: notavis-mipi-trigger:latest
+    container_name: vc-trigger
+    restart: unless-stopped
+    ports:
+      - "8501:8501"
+    environment:
+      VC_TRIGGER_LOG_LEVEL: INFO
+      # Set to "0" (or remove) on real Pi hardware once the devices/group_add
+      # block below is configured for your board.
+      VC_TRIGGER_MOCK: "1"
+
+    # --- GPIO passthrough for real Pi hardware -----------------------------
+    # 1. Find the correct gpiochip device on the target board:
+    #      ls -l /dev/gpiochip*
+    #    CM5 / Pi 5 with kernel < 6.6.45  -> /dev/gpiochip4
+    #    CM5 / Pi 5 with kernel >= 6.6.45 -> /dev/gpiochip0
+    #    (RP1 chip numbering has changed across kernel releases — verify on
+    #    your board rather than assuming either value.)
+    # 2. Find the host GID of the `gpio` group:
+    #      getent group gpio
+    # 3. Uncomment and adjust:
+    #
+    # devices:
+    #   - /dev/gpiochip0:/dev/gpiochip0
+    # group_add:
+    #   - "999"   # replace with the GID from `getent group gpio` on the host
