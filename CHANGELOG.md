@@ -16,8 +16,11 @@ Versionierung nach [Semantic Versioning](https://semver.org/lang/de/).
   Ermittlung und Troubleshooting. Die PySide6-Desktop-UI ist bewusst nicht
   Teil des Images (siehe Begruendung in `deploy/DOCKER.md`).
 - CI-Workflow `.github/workflows/docker.yml`: baut das Docker-Image bei
-  jedem relevanten Push/PR fuer linux/amd64 und linux/arm64 (ohne Push in
-  eine Registry), inkl. `hadolint`-Lint und `docker compose config`.
+  jedem relevanten Push/PR fuer linux/amd64 und linux/arm64, inkl.
+  `hadolint`-Lint und `docker compose config`. Bei Push nach `main` bzw.
+  einem Versions-Tag `vX.Y.Z` wird das Image zusaetzlich nach
+  `ghcr.io/notavis-gmbh/notavis-mipi-trigger-public` veroeffentlicht;
+  README-Abschnitt mit Pull-Kommando und CI-/Image-Badges ergaenzt.
 
 ## [0.1.2] — 2026-08-10
 
